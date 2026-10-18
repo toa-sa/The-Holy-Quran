@@ -33,7 +33,9 @@ for p in "" "index.php?surah=2" "index.php?action=quran" "index.php?action=tafse
   "index.php?action=languages" "index.php?action=translate&l=en&surah=1" "index.php?action=translate&l=cz&surah=1" \
   "index.php?action=books" "index.php?action=books_category&category_id=124" "index.php?action=qibla" \
   "index.php?action=tasbeeh" "index.php?action=contact" "index.php?action=date_converter" \
-  "index.php?action=morning_adhkar" "index.php?action=evening_adhkar" "admin-login.php" "forgot-password.php"; do
+  "index.php?action=morning_adhkar" "index.php?action=evening_adhkar" "admin-login.php" "forgot-password.php" \
+  "muwatta.php" "muwatta.php?book=1" "muwatta.php?h=10" "muwatta.php?h=0" "muwatta.php?h=249" \
+  "muwatta.php?q=%D8%A7%D9%84%D8%B5%D8%A8%D8%AD"; do
   check 200 "$p"
 done
 # Private pages must send visitors to the login page.

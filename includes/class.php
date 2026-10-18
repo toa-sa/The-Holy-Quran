@@ -1351,7 +1351,7 @@ class QuranForAll extends QuranForAll_API {
 		$mod_rewrite = $this->mod_rewrite_allow;
 		$sitr_url = $this->siteurl.'/';
 		$fileName = '?'; //index.php
-		$allow_action = array( 'home', 'quran', 'tafseer', 'translate', 'language', 'languages', 'books', 'books_language', 'books_category', 'book', 'date_converter', 'contact', 'morning_adhkar', 'evening_adhkar', 'qibla', 'tasbeeh', 'sadaqah_agent' );
+		$allow_action = array( 'home', 'quran', 'tafseer', 'translate', 'language', 'languages', 'books', 'books_language', 'books_category', 'book', 'date_converter', 'contact', 'morning_adhkar', 'evening_adhkar', 'qibla', 'tasbeeh', 'muwatta', 'sadaqah_agent' );
 
 		if( is_array($data) ){
 			$action = ( isset($data['action']) ? strip_tags($data['action']) : 'home' );
@@ -1429,6 +1429,8 @@ class QuranForAll extends QuranForAll_API {
 					$url = $sitr_url.'qibla.php';
 				}elseif( $action == 'tasbeeh' ){
 					$url = $sitr_url.'tasbeeh.php';
+				}elseif( $action == 'muwatta' ){
+					$url = $sitr_url.'muwatta.php';
 				}elseif( $action == 'sadaqah_agent' ){
 					$url = $sitr_url.'sadaqah-agent.php';
 				}else{
@@ -3999,6 +4001,9 @@ class QuranForAll extends QuranForAll_API {
 			$output = $this->Template_view_full( $this->qibla_page() );
 		}elseif( $action == 'tasbeeh' ){
 			$output = $this->Template_view_full( $this->tasbeeh_page() );
+		}elseif( $action == 'muwatta' ){
+			require_once __DIR__ . '/muwatta.php';
+			$output = $this->Template_view_full( qfa_muwatta_page($this) );
 		}elseif( $action == 'sadaqah_agent' ){
 			// The studio is private. sadaqah-agent.php checks the session, but this
 			// action is also reachable through index.php, so check it here too.

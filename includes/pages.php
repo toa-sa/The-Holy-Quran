@@ -43,6 +43,12 @@ function qfa_pages(): array {
             'actions' => ['books', 'books_language', 'books_category', 'book'],
             'links' => ['books\.(?:php|html)', '/books-in-[^"]*\.html', '/books-category-[^"]*\.html', '/book-\d+\.html', '[?&]action=(?:books|books_language|books_category|book)(?=&|$)'],
         ],
+        'muwatta' => [
+            'label' => 'مختصر الموطأ',
+            'hint' => 'فهرس كتب الموطأ وأبوابه وأحاديثه والبحث فيه.',
+            'actions' => ['muwatta'],
+            'links' => ['muwatta\.(?:php|html)', '[?&]action=muwatta(?=&|$)'],
+        ],
         'qibla' => [
             'label' => 'اتجاه القبلة',
             'hint' => 'صفحة تحديد اتجاه القبلة.',
