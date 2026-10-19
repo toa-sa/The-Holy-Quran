@@ -636,6 +636,10 @@ class QuranForAll extends QuranForAll_API {
 		if( $color_scheme === 'toa' ) $color_scheme = 'mushaf'; // TOA Digital scheme retired in v1.2.0.
 		if( !in_array($color_scheme, $allowed_color_schemes, true) ) $color_scheme = 'emerald';
 		$page_class .= ' appearance-'.$appearance_style.' color-'.$color_scheme;
+		if( !(defined('MEMORIAL_ENABLED') && MEMORIAL_ENABLED) ){
+			// No memorial bar: the header sticks to the very top instead of under the bar.
+			$page_class .= ' no-memorial-bar';
+		}
 		if( !( $this->is_rtl() == true || $this->is_rtl == true ) ){
 			$page_class .= ' qfa-ltr';
 		}

@@ -1530,7 +1530,7 @@ html[data-theme="dark"] .mobile-nav-group>summary{color:#f1f5f3}html[data-theme=
 /* V40.1 - Keep the memorial identity visible while browsing on all screens. */
 .mobile-fixed-header-stack{display:contents}
 .memorial-bar{position:sticky;top:0;z-index:1070;width:100%;max-width:100vw;overflow:hidden}
-@media(min-width:992px){.custom-nav.sticky-top{top:42px}}
+@media(min-width:992px){.custom-nav.sticky-top{top:42px}.no-memorial-bar .custom-nav.sticky-top{top:0}}
 @media(max-width:991px){
   body{padding-top:0}
   .mobile-fixed-header-stack{display:block;position:-webkit-sticky;position:sticky;top:0;right:auto;left:auto;z-index:1070;width:100%;background:#fff}
