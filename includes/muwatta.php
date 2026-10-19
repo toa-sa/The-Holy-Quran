@@ -59,8 +59,9 @@ function qfa_muwatta_e(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+/** Numbers in the site's style (as «الآية 1» on the tafseer page). */
 function qfa_muwatta_num(int $n): string {
-    return strtr((string)$n, ['0' => '٠', '1' => '١', '2' => '٢', '3' => '٣', '4' => '٤', '5' => '٥', '6' => '٦', '7' => '٧', '8' => '٨', '9' => '٩']);
+    return (string)$n;
 }
 
 /** Search key: same as ArabicNormalizer.skeleton in the app. */
@@ -137,38 +138,57 @@ function qfa_muwatta_chapters(int $count): string {
     return qfa_muwatta_num($count) . ($count <= 10 ? ' أبواب' : ' بابًا');
 }
 
+/** The page inside the site's content card, as on the tafseer page. */
+function qfa_muwatta_card($site, string $title, string $code): string {
+    return $site->tpl_content(qfa_muwatta_e($title), '<div class="mw-page">' . $code . '</div>');
+}
+
+/** A picker in the style of the tafseer page's «اختر سوره». Values are page URLs. */
+function qfa_muwatta_select(string $id, string $label, array $options, string $selected): string {
+    $code = '<div class="col-12 col-md-4"><div class="mw-list"><label for="' . $id . '"><strong>' . $label . '</strong></label>'
+        . '<select class="form-control" name="formt" data-qfa-navigate id="' . $id . '"><option value="#">' . $label . '</option>';
+    foreach ($options as $url => $text) {
+        $code .= '<option value="' . qfa_muwatta_e($url) . '"' . ($url === $selected ? ' selected' : '') . '>' . qfa_muwatta_e($text) . '</option>';
+    }
+    return $code . '</select></div></div>';
+}
+
 function qfa_muwatta_page($site): string {
     $data = qfa_muwatta_data();
     $base = $site->siteurl . '/muwatta.php';
-    $site->headercode .= '<link rel="stylesheet" type="text/css" href="' . $site->get_theme_folder_url() . '/css/muwatta.css?v=1.0">';
+    $site->headercode .= '<link rel="stylesheet" type="text/css" href="' . $site->get_theme_folder_url() . '/css/muwatta.css?v=1.1">';
+    $home = ['title' => QFA_MUWATTA_TITLE, 'url' => $base];
     if (empty($data['books'])) {
         $site->title = QFA_MUWATTA_TITLE;
         $site->cache_allow_create = false;
-        return '<section class="mw-page"><div class="container mw-container"><p>تعذّر تحميل الكتاب.</p></div></section>';
+        return qfa_muwatta_card($site, QFA_MUWATTA_TITLE, '<p>تعذّر تحميل الكتاب.</p>');
     }
 
-    $search = '<form class="mw-search" action="' . qfa_muwatta_e($base) . '" method="get" role="search">'
-        . '<i class="fas fa-search" aria-hidden="true"></i><input type="search" name="q" placeholder="ابحث في الموطأ" value="' . qfa_muwatta_e((string)($_GET['q'] ?? '')) . '" aria-label="ابحث في الموطأ"></form>';
+    $search = '<form class="qfa-section-search mw-search" action="' . qfa_muwatta_e($base) . '" method="get" role="search">'
+        . '<i class="fas fa-search" aria-hidden="true"></i><input type="search" name="q" placeholder="ابحث في مختصر الموطأ" value="' . qfa_muwatta_e((string)($_GET['q'] ?? '')) . '" aria-label="ابحث في مختصر الموطأ"></form>';
 
     // reading guide
     if (isset($_GET['guide'])) {
         $site->title = 'طريقة القراءة - ' . QFA_MUWATTA_TITLE;
+        $site->description = 'طريقة قراءة ' . QFA_MUWATTA_TITLE . ' ومعنى كل علامة فيه.';
         $site->url = $base . '?guide=1';
-        $code = '<nav class="mw-crumb"><a href="' . qfa_muwatta_e($base) . '">' . QFA_MUWATTA_TITLE . '</a></nav><header class="mw-head"><h1>طريقة القراءة</h1></header>';
+        $site->breadcrumb_parent = [$home];
+        $site->breadcrumb_title = 'طريقة القراءة';
+        $code = '';
         foreach (QFA_MUWATTA_GUIDE as [$mark, $meaning]) {
             if ($mark === 'خط تحت الراوي') {
                 $title = '<span class="mw-hadith-line"><u class="mw-mursal">عن ابنِ شهابٍ</u></span>';
             } elseif ($mark === 'الرقم الصغير فوق الكلمة') {
-                $title = '<span class="mw-hadith-line">شَعبَانُ<sup class="mw-note-ref">١</sup></span>';
+                $title = '<span class="mw-hadith-line">شَعبَانُ<sup class="mw-note-ref">1</sup></span>';
             } else {
                 $title = qfa_muwatta_e($mark);
             }
             $code .= '<div class="mw-block mw-guide"><p class="mw-guide-mark' . ($mark === '★' ? ' is-star' : '') . '">' . $title . '</p><p>' . qfa_muwatta_e($meaning) . '</p></div>';
         }
-        $code .= '<p class="mw-legend">' . qfa_muwatta_e(QFA_MUWATTA_GUIDE_SOURCES) . '</p>';
-        $code .= '<p class="mw-guide-start"><a class="mw-button" href="' . qfa_muwatta_e($base) . '">ابدأ القراءة</a></p>';
+        $code .= '<div class="mw-marks"><i class="fa fa-check-circle" aria-hidden="true"></i> ' . qfa_muwatta_e(QFA_MUWATTA_GUIDE_SOURCES) . '</div>';
+        $code .= '<nav class="tafseer-ayah-navigation mw-nav"><a href="' . qfa_muwatta_e($base) . '"><span>ابدأ القراءة<small>فهرس الكتب</small></span><i class="fa fa-arrow-left" aria-hidden="true"></i></a></nav>';
         $site->footercode .= '<script src="' . $site->get_theme_folder_url() . '/js/muwatta.js?v=1.0" defer></script>';
-        return '<section class="mw-page" data-mw-guide><div class="container mw-container">' . $code . '</div></section>';
+        return '<div data-mw-guide>' . qfa_muwatta_card($site, $site->title, $code) . '</div>';
     }
 
     // hadith
@@ -176,29 +196,50 @@ function qfa_muwatta_page($site): string {
         $id = (int)$_GET['h'];
         if (!isset($data['entries'][$id])) {
             $site->cache_allow_create = false;
-            return '<section class="mw-page"><div class="container mw-container"><p>الحديث غير موجود.</p></div></section>';
+            $site->title = QFA_MUWATTA_TITLE;
+            return qfa_muwatta_card($site, QFA_MUWATTA_TITLE, '<p>الحديث غير موجود.</p>');
         }
         $entry = $data['entries'][$id];
         $book = $data['books'][$entry['book']];
         $chapter = $book['chapters'][$entry['chapter']];
         $item = $entry['item'];
-        $site->title = ($item['n'] === null ? 'زيادة' : 'الحديث ' . $item['n']) . ' - ' . QFA_MUWATTA_TITLE;
-        $site->description = qfa_muwatta_opening($item, 25);
+        $name = $item['n'] === null ? 'زيادة' : 'الحديث ' . qfa_muwatta_num((int)$item['n']);
+        $site->title = $book['title'] . ' - ' . QFA_MUWATTA_TITLE . ' - ' . $name;
+        $site->description = QFA_MUWATTA_TITLE . ' - ' . $book['title'] . ($chapter['title'] ? ' - ' . $chapter['title'] : '') . ' - ' . $name;
         $site->url = $base . '?h=' . $id;
+        $site->breadcrumb_parent = [$home, ['title' => $book['title'], 'url' => $base . '?book=' . ($entry['book'] + 1)]];
+        $site->breadcrumb_title = $name;
+
+        // pickers: book, chapter, hadith (each goes to the first hadith of its choice)
+        $books = $chapters = $items = [];
+        $label = static function ($e) { return $e['item']['n'] === null ? 'زيادة' : qfa_muwatta_num((int)$e['item']['n']); };
+        foreach ($data['entries'] as $eid => $e) {
+            $books[$e['book']] ??= $eid;
+            if ($e['book'] !== $entry['book']) continue;
+            $chapters[$e['chapter']] ??= $eid;
+            $items[$base . '?h=' . $eid] = $label($e);
+        }
+        $bookOptions = $chapterOptions = [];
+        foreach ($books as $b => $eid) $bookOptions[$base . '?h=' . $eid] = $data['books'][$b]['title'];
+        foreach ($chapters as $c => $eid) $chapterOptions[$base . '?h=' . $eid] = $book['chapters'][$c]['title'] ?: 'باب ' . qfa_muwatta_num($c + 1);
+        $code = $search . '<div class="changesoraform"><div class="row">'
+            . qfa_muwatta_select('mw_book_list', 'اختر الكتاب', $bookOptions, $base . '?h=' . $books[$entry['book']])
+            . qfa_muwatta_select('mw_chapter_list', 'اختر الباب', $chapterOptions, $base . '?h=' . $chapters[$entry['chapter']])
+            . qfa_muwatta_select('mw_hadith_list', 'اختر رقم الحديث', $items, $site->url)
+            . '</div>' . $site->post_share($site->title, $site->url) . '</div>';
 
         $notes = [];
-        $code = '<nav class="mw-crumb"><a href="' . qfa_muwatta_e($base) . '">' . QFA_MUWATTA_TITLE . '</a> / <a href="' . qfa_muwatta_e($base . '?book=' . ($entry['book'] + 1)) . '">' . qfa_muwatta_e($book['title']) . '</a>'
-            . ($chapter['title'] ? ' / ' . qfa_muwatta_e($chapter['title']) : '') . '</nav>';
+        $info = '<p class="mw-info-line">' . QFA_MUWATTA_TITLE . ' · <a href="' . qfa_muwatta_e($base . '?book=' . ($entry['book'] + 1)) . '">' . qfa_muwatta_e($book['title']) . '</a>'
+            . ($chapter['title'] ? ' · ' . qfa_muwatta_e($chapter['title']) : '') . '</p>';
         if ($item['n'] === null) {
             $code .= '<div class="mw-block mw-matn"><p class="mw-block-label">زيادة من غير رواية يحيى بن يحيى الليثي</p>';
             foreach ($item['matn'] as $p) $code .= '<p>' . qfa_muwatta_html($p, $notes) . '</p>';
-            $code .= '</div>';
+            $code .= $info . '</div>';
         } else {
             $matn = $item['matn'] ?: [$item['sanad']];
             $code .= '<div class="mw-block mw-matn">';
             foreach ($matn as $p) $code .= '<p>' . qfa_muwatta_html($p, $notes) . '</p>';
-            $code .= '</div>';
-            $code .= '<div class="mw-info"><span class="mw-num">' . qfa_muwatta_num((int)$item['n']) . '</span>' . qfa_muwatta_badges($item) . '</div>';
+            $code .= '<div class="mw-info"><span class="mw-num">' . qfa_muwatta_num((int)$item['n']) . '</span>' . qfa_muwatta_badges($item) . '</div>' . $info . '</div>';
             if ($item['matn'] && $item['sanad']) {
                 $code .= '<div class="mw-block mw-sanad"><p class="mw-block-label">السند</p><p>' . qfa_muwatta_html($item['sanad'], $notes) . '</p></div>';
             }
@@ -218,22 +259,23 @@ function qfa_muwatta_page($site): string {
         if ($item['star']) $marks[] = '★ رواه البخاري أو مسلم.';
         if (qfa_muwatta_mursal($item)) $marks[] = '<u class="mw-mursal">الخط تحت الراوي</u>: الحديث مرسل' . (($item['label'] ?? '') === 'موصول' ? '، وهو موصول عند البخاري أو مسلم.' : '.');
         if (!empty($item['ref'])) $marks[] = 'رقمه في «التقصّي» لابن عبد البر: ' . qfa_muwatta_num((int)$item['ref']);
-        if ($marks) $code .= '<div class="mw-marks">' . implode('<br>', $marks) . '</div>';
+        $marks[] = '<i class="fa fa-check-circle" aria-hidden="true"></i> المصدر: ' . QFA_MUWATTA_TITLE . ' — الأحاديث المسندة من موطأ الإمام مالك برواية يحيى بن يحيى الليثي.';
+        $code .= '<div class="mw-marks">' . implode('<br>', $marks) . '</div>';
 
         $code .= '<nav class="tafseer-ayah-navigation mw-nav" aria-label="التنقل بين الأحاديث">';
-        $label = static function ($e) { return $e['item']['n'] === null ? 'زيادة' : 'رقم ' . qfa_muwatta_num((int)$e['item']['n']); };
+        $navLabel = static function ($e) { return $e['item']['n'] === null ? 'زيادة' : 'رقم ' . qfa_muwatta_num((int)$e['item']['n']); };
         if ($id > 0) {
-            $code .= '<a href="' . qfa_muwatta_e($base . '?h=' . ($id - 1)) . '"><i class="fa fa-arrow-right" aria-hidden="true"></i><span>الحديث السابق<small>' . $label($data['entries'][$id - 1]) . '</small></span></a>';
+            $code .= '<a href="' . qfa_muwatta_e($base . '?h=' . ($id - 1)) . '"><i class="fa fa-arrow-right" aria-hidden="true"></i><span>الحديث السابق<small>' . $navLabel($data['entries'][$id - 1]) . '</small></span></a>';
         } else {
             $code .= '<span class="is-disabled"><i class="fa fa-arrow-right" aria-hidden="true"></i> الحديث السابق</span>';
         }
         if (isset($data['entries'][$id + 1])) {
-            $code .= '<a href="' . qfa_muwatta_e($base . '?h=' . ($id + 1)) . '"><span>الحديث التالي<small>' . $label($data['entries'][$id + 1]) . '</small></span><i class="fa fa-arrow-left" aria-hidden="true"></i></a>';
+            $code .= '<a href="' . qfa_muwatta_e($base . '?h=' . ($id + 1)) . '"><span>الحديث التالي<small>' . $navLabel($data['entries'][$id + 1]) . '</small></span><i class="fa fa-arrow-left" aria-hidden="true"></i></a>';
         } else {
             $code .= '<span class="is-disabled">الحديث التالي <i class="fa fa-arrow-left" aria-hidden="true"></i></span>';
         }
         $code .= '</nav>';
-        return '<section class="mw-page"><div class="container mw-container">' . $code . '</div></section>';
+        return qfa_muwatta_card($site, $site->title, $code);
     }
 
     // search
@@ -241,7 +283,10 @@ function qfa_muwatta_page($site): string {
     if ($query !== '') {
         $site->cache_allow_create = false;
         $site->title = 'البحث في ' . QFA_MUWATTA_TITLE;
+        $site->description = $site->title;
         $site->url = $base;
+        $site->breadcrumb_parent = [$home];
+        $site->breadcrumb_title = 'البحث';
         $key = qfa_muwatta_key($query);
         $rows = '';
         $count = 0;
@@ -257,10 +302,10 @@ function qfa_muwatta_page($site): string {
                     . '<span class="mw-row-text"><small>' . qfa_muwatta_e($book['title'] . ($chapter ? ' · ' . $chapter : '')) . '</small><span class="mw-hadith-line">' . qfa_muwatta_e(qfa_muwatta_opening($entry['item'], 18)) . '</span></span></a>';
             }
         }
-        $code = '<header class="mw-head"><h1>' . QFA_MUWATTA_TITLE . '</h1></header>' . $search
-            . '<p class="mw-count">' . ($count ? qfa_muwatta_num($count) . ' نتيجة · البحث بدون تشكيل' . ($count > 100 ? ' (أول ١٠٠)' : '') : 'لا توجد نتائج') . '</p>'
+        $code = $search
+            . '<p class="mw-count">' . ($count ? qfa_muwatta_num($count) . ' نتيجة · البحث بدون تشكيل' . ($count > 100 ? ' (أول 100)' : '') : 'لا توجد نتائج') . '</p>'
             . ($rows ? '<div class="mw-card">' . $rows . '</div>' : '');
-        return '<section class="mw-page"><div class="container mw-container">' . $code . '</div></section>';
+        return qfa_muwatta_card($site, $site->title, $code);
     }
 
     // book
@@ -268,8 +313,11 @@ function qfa_muwatta_page($site): string {
         $b = (int)$_GET['book'] - 1;
         $book = $data['books'][$b];
         $site->title = $book['title'] . ' - ' . QFA_MUWATTA_TITLE;
+        $site->description = $site->title;
         $site->url = $base . '?book=' . ($b + 1);
-        $code = '<nav class="mw-crumb"><a href="' . qfa_muwatta_e($base) . '">' . QFA_MUWATTA_TITLE . '</a></nav><header class="mw-head"><h1>' . qfa_muwatta_e($book['title']) . '</h1></header>';
+        $site->breadcrumb_parent = [$home];
+        $site->breadcrumb_title = $book['title'];
+        $code = $search;
         foreach ($book['chapters'] as $c => $chapter) {
             if ($chapter['title']) $code .= '<h2 class="mw-chapter">' . qfa_muwatta_e($chapter['title']) . '</h2>';
             $code .= '<div class="mw-card">';
@@ -281,13 +329,14 @@ function qfa_muwatta_page($site): string {
             }
             $code .= '</div>';
         }
-        return '<section class="mw-page"><div class="container mw-container">' . $code . '</div></section>';
+        return qfa_muwatta_card($site, $site->title, $code);
     }
 
     // index
     $site->title = QFA_MUWATTA_TITLE;
     $site->description = 'الأحاديث المسندة من موطأ الإمام مالك برواية يحيى بن يحيى الليثي، مفهرسة كتابًا كتابًا وبابًا بابًا، مع البحث.';
     $site->url = $base;
+    $site->breadcrumb_title = QFA_MUWATTA_TITLE;
     $rows = '';
     foreach ($data['books'] as $b => $book) {
         $count = 0;
@@ -296,9 +345,9 @@ function qfa_muwatta_page($site): string {
             . '<span class="mw-row-text"><strong>' . qfa_muwatta_e($book['title']) . '</strong><small>' . qfa_muwatta_chapters(count($book['chapters'])) . ' · ' . qfa_muwatta_num($count) . ' حديثًا</small></span></a>';
     }
     $site->footercode .= '<script src="' . $site->get_theme_folder_url() . '/js/muwatta.js?v=1.0" defer></script>';
-    $code = '<header class="mw-head mw-hero" data-mw-index data-guide-url="' . qfa_muwatta_e($base . '?guide=1') . '"><h1>' . QFA_MUWATTA_TITLE . '</h1><p class="mw-dua">' . QFA_MUWATTA_DUA . '</p>'
-        . '<p><a class="mw-button mw-button-soft" href="' . qfa_muwatta_e($base . '?guide=1') . '"><i class="fas fa-info-circle" aria-hidden="true"></i> طريقة القراءة</a></p></header>'
+    $code = '<div class="mw-intro" data-mw-index data-guide-url="' . qfa_muwatta_e($base . '?guide=1') . '"><p class="mw-dua">' . QFA_MUWATTA_DUA . '</p>'
+        . '<p><a class="mw-button mw-button-soft" href="' . qfa_muwatta_e($base . '?guide=1') . '"><i class="fas fa-info-circle" aria-hidden="true"></i> طريقة القراءة</a></p></div>'
         . $search . '<div class="mw-card">' . $rows . '</div>'
-        . '<footer class="mw-legend"><strong>العلامات:</strong> ★ رواه البخاري أو مسلم · <u class="mw-mursal">خط تحت الراوي</u>: مرسل · «موصول»: موصول عند البخاري أو مسلم · الرقم: رقم الحديث في «التقصّي» لابن عبد البر.</footer>';
-    return '<section class="mw-page"><div class="container mw-container">' . $code . '</div></section>';
+        . '<div class="mw-marks"><strong>العلامات:</strong> ★ رواه البخاري أو مسلم · <u class="mw-mursal">خط تحت الراوي</u>: مرسل · «موصول»: موصول عند البخاري أو مسلم · الرقم: رقم الحديث في «التقصّي» لابن عبد البر.</div>';
+    return qfa_muwatta_card($site, QFA_MUWATTA_TITLE, $code);
 }
