@@ -293,7 +293,7 @@ function qfa_muwatta_page($site): string {
         if (mb_strlen($key) >= 2) {
             foreach ($data['entries'] as $id => $entry) {
                 $text = implode(' ', array_map('qfa_muwatta_plain', qfa_muwatta_paragraphs($entry['item'])));
-                if (!str_contains(qfa_muwatta_key($text), $key)) continue;
+                if (strpos(qfa_muwatta_key($text), $key) === false) continue;
                 $count++;
                 if ($count > 100) continue;
                 $book = $data['books'][$entry['book']];
