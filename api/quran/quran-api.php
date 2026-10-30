@@ -360,7 +360,7 @@ class QuranForAll_API {
 		$reader[3] = array(
 			"name_ar" => "عبدالرشيد صوفي",
 			"name_en" => "Abdul Rasheed Sufi",
-			"folder" => "https://server9.mp3quran.net/soufi_klf/",
+			"folder" => "https://cdn.mp3quran.net/audio/abdulrasheed-sufi/r3/",
 			"description_ar" => "المصحف المرتل بصوت القارئ عبد الرشيد صوفي برواية حفص عن عاصم، والذي يمتاز بجودة صوتية عالية بتقنية [Mp3 128 Kb].",
 			"description_en" => "Reciter Abdul Rasheed Sufi's recitation of the Quran with rewayah Hafs from Asim This version is characterized by a high quality [MP3: 128 Kbps]."
 		);

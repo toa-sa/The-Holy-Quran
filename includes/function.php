@@ -18,7 +18,7 @@ header(
     . "style-src 'self' 'unsafe-inline'; "
     . "font-src 'self' data:; "
     . "img-src 'self' data: https:; "
-    . "media-src 'self' https://www.everyayah.com https://server6.mp3quran.net https://server7.mp3quran.net https://server8.mp3quran.net https://server9.mp3quran.net https://server10.mp3quran.net https://server11.mp3quran.net https://server12.mp3quran.net https://server13.mp3quran.net https://download.quranicaudio.com https://download.tvquran.com https://www.qurantranslations.net; "
+    . "media-src 'self' https://www.everyayah.com https://server6.mp3quran.net https://server7.mp3quran.net https://server8.mp3quran.net https://server9.mp3quran.net https://server10.mp3quran.net https://server11.mp3quran.net https://server12.mp3quran.net https://server13.mp3quran.net https://cdn.mp3quran.net https://download.quranicaudio.com https://download.tvquran.com https://www.qurantranslations.net; "
     . "connect-src 'self' https://api.aladhan.com; "
     . "frame-src https://www.youtube.com https://www.youtube-nocookie.com; "
     . "object-src 'none'; "

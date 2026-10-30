@@ -14,7 +14,7 @@ This edition continues the original project's Quran-focused functionality while 
 
 ### Version
 
-Current release: **v1.2.1** — see [CHANGELOG.md](CHANGELOG.md). Where the project stands and what comes next: [PROJECT-STATUS.md](PROJECT-STATUS.md)
+Current release: **v1.3.0** — see [CHANGELOG.md](CHANGELOG.md). Where the project stands and what comes next: [PROJECT-STATUS.md](PROJECT-STATUS.md)
 
 ### Highlights of this edition
 
@@ -38,6 +38,7 @@ Development and improvements in this edition include:
 - Two-step sign-in (authenticator app) for the administrator, with recovery codes.
 - Page toggles, a contact-message inbox and a source-integrity check in the control panel.
 - The "Mushaf" colour theme (warm paper light mode, neutral charcoal dark mode), Al-Muyassar as the default Tafseer, and self-hosted Cairo and Montserrat fonts.
+- A «Mukhtasar Al-Muwatta» section: index of books and chapters, one hadith per page in the Tafseer page style, search without diacritics, and a reading guide.
 - Automated checks on GitHub for every change.
 - UI, theme, sharing, and usability improvements.
 - Additional stability and compatibility improvements across Quran, Tafseer, translation, books, and audio functionality.
@@ -90,7 +91,7 @@ Third-party materials distributed with the project are not covered -- see [NOTIC
 
 ### الإصدار
 
-الإصدار الحالي: **v1.2.1** — راجع [CHANGELOG.md](CHANGELOG.md). حالة المشروع وما أُنجز وما بعده: [PROJECT-STATUS.md](PROJECT-STATUS.md)
+الإصدار الحالي: **v1.3.0** — راجع [CHANGELOG.md](CHANGELOG.md). حالة المشروع وما أُنجز وما بعده: [PROJECT-STATUS.md](PROJECT-STATUS.md)
 
 ### أبرز تطويرات وتحسينات هذا الإصدار
 
@@ -114,6 +115,7 @@ Third-party materials distributed with the project are not covered -- see [NOTIC
 - التحقق بخطوتين لدخول المدير عبر تطبيق المصادقة، مع رموز استرداد.
 - إدارة الصفحات، وصندوق رسائل التواصل، وفحص سلامة المصادر في لوحة التحكم.
 - ثيم «مصحف» (ورق دافئ في الفاتح ورمادي فحمي في الداكن)، والتفسير الميسّر افتراضيًا، وخطوط Cairo وMontserrat باستضافة ذاتية.
+- قسم «مختصر الموطأ»: فهرس الكتب والأبواب، والحديث حديثًا حديثًا بأسلوب صفحة التفسير، والبحث بدون تشكيل، وصفحة «طريقة القراءة».
 - فحص آلي على GitHub لكل تعديل.
 - تحسينات على الواجهة والثيمات والمشاركة وسهولة الاستخدام.
 - تحسينات إضافية على الاستقرار والتوافق في صفحات القرآن والتفسير والترجمات والكتب والصوتيات.
