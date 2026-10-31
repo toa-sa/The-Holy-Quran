@@ -18,6 +18,6 @@
 
 ## ملاحظات
 - `README.md` و`tools/server-audit.php` على الخادم نسختان أقدم من المستودع (14 أكتوبر)، لم يحدّثهما رفع الموطأ. لا يُؤخذان؛ يتحدّثان مع النشر القادم.
-- مجلد `editor/` في alshabeeb.net هو «منصة تحرير الصور» (مشروع AdvancedImageEditor، إصدار 22 أغسطس، مطابق للحزمة المحلية)، وليس من هذا المستودع.
-- على الخادم نسخ احتياطية قديمة متروكة: `includes/class.php.pre-attribution-20260819`، و`includes/admin-auth.php.before-admin-logo-fix` و`.htaccess.bak-https` و`.htaccess.before-routing-20260821` (quranforabdullah.com)، و`includes/x_studio_current.php.bak` (alshabeeb.net). لا تُستخدم؛ حذفها بعد نسخة احتياطية بقرار المالك.
+- مجلد `editor/` في alshabeeb.net هو «منصة تحرير الصور» (مشروع AdvancedImageEditor، إصدار 22 أغسطس، مطابق للحزمة المحلية)، وليس من هذا المستودع. صار له مستودع خاص: `toa-sa/advanced-image-editor` (مطابق للإنتاج 11/11).
+- على الخادم نسخ احتياطية قديمة متروكة: `includes/class.php.pre-attribution-20260819`، و`includes/admin-auth.php.before-admin-logo-fix` و`.htaccess.bak-https` و`.htaccess.before-routing-20260821` (quranforabdullah.com)، و`includes/x_studio_current.php.bak` (alshabeeb.net). **حُذفت من الخادم 31 أكتوبر 2026** باعتماد المالك، بعد نسخة احتياطية خارج مجلد الموقع (صلاحية 600)، والمواقع الثلاثة ⇒ 200.
 - `staging.alshabeeb.net` نسخة تجريبية أقدم، خارج المطابقة.
