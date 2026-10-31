@@ -1,0 +1,49 @@
+Require all granted
+DirectoryIndex index.php
+
+RewriteEngine on
+# Send visitors to https.
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://quranforabdullah.com%{REQUEST_URI} [L,R=301]
+# Tests and maintenance tools run from the terminal only.
+RewriteRule ^(tests|tools)/ - [R=404,L]
+RewriteCond %{QUERY_STRING} (^|&)action=sadaqah_agent(&|$) [NC]
+RewriteRule ^ - [F]
+
+# منع فتح الموقع كمسار تابع لموقع الشبيب فقط
+RewriteCond %{HTTP_HOST} ^(www\.)?alshabeeb\.net$ [NC]
+RewriteRule ^ - [F,L]
+
+# روابط القرآن
+RewriteRule ^index\.html$ index.php [L,QSA]
+RewriteRule ^surah-(.*)\.html$ index.php?surah=$1&l=ar [L,QSA]
+RewriteRule ^view-(.*),from-(.*),to-(.*)\.html$ index.php?surah=$1&f=$2&t=$3 [L,QSA]
+RewriteRule ^reader-(.*)-(.*)\.html$ index.php?surah=$1&reader_id=$2 [L,QSA]
+RewriteRule ^quran\.html$ index.php?action=quran [L,QSA]
+
+# اللغات والترجمات
+RewriteRule ^language-(.*)\.html$ index.php?action=translate&l=$1 [L,QSA]
+RewriteRule ^translate-(.*)-(.*)\.html$ index.php?action=translate&l=$1&surah=$2 [L,QSA]
+RewriteRule ^s-(.*)-(.*)-(.*)\.html$ index.php?action=translate&l=$1&surah=$2&reader_id=$3 [L,QSA]
+RewriteRule ^languages\.html$ index.php?action=languages [L,QSA]
+
+# التفسير
+RewriteRule ^tafseer-(.*)-(.*)\.html$ index.php?action=tafseer&type=$1&surah=$2 [L,QSA]
+RewriteRule ^tafseer-(.*)\.html$ index.php?action=tafseer&type=$1 [L,QSA]
+RewriteRule ^t-(.*)-(.*)-(.*)\.html$ index.php?action=tafseer&surah=$1&type=$2&ayah=$3 [L,QSA]
+
+# الكتب
+RewriteRule ^books\.html$ index.php?action=books [L,QSA]
+RewriteRule ^books-in-(.*)\.html$ index.php?action=books_language&name=$1 [L,QSA]
+RewriteRule ^(.*)-page-(.*)\.html$ index.php?action=books_language&name=$1&page=$2 [L,QSA]
+RewriteRule ^books-category-(.*)\.html$ index.php?action=books_category&category_id=$1 [L,QSA]
+RewriteRule ^category-(.*)-page(.*)\.html$ index.php?action=books_category&category_id=$1&page=$2 [L,QSA]
+RewriteRule ^book-(.*)\.html$ index.php?action=book&book_id=$1 [L,QSA]
+
+# الصفحات الإضافية
+RewriteRule ^date-converter\.html$ index.php?action=date_converter [L,QSA]
+RewriteRule ^contact\.html$ index.php?action=contact [L,QSA]
+RewriteRule ^morning-adhkar\.html$ index.php?action=morning_adhkar [L,QSA]
+RewriteRule ^evening-adhkar\.html$ index.php?action=evening_adhkar [L,QSA]
+RewriteRule ^qibla\.html$ index.php?action=qibla [L,QSA]

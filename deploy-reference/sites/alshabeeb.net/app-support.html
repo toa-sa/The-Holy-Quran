@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الدعم – تطبيق القرآن الكريم</title>
+<meta name="description" content="الدعم والتواصل لتطبيق القرآن الكريم – صدقة جارية">
+<style>
+:root{--paper:#F7F3EA;--card:#FFFDF8;--ink:#1E2B26;--muted:#5F6964;--green:#24473B;--gold:#B08A3E;--line:#E6DDCB;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--paper:#15201C;--card:#1C2924;--ink:#ECE6D8;--muted:#A7AFAA;--green:#8FC1A9;--gold:#C9A659;--line:#2C3A34;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Cairo","Geeza Pro","Segoe UI",Tahoma,system-ui,sans-serif;line-height:1.9;padding:32px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{text-align:center;padding-bottom:8px;border-bottom:1px solid var(--gold)}
+h1{color:var(--green);font-size:1.6rem;margin:0 0 4px}
+h2{color:var(--green);font-size:1.15rem;margin:0 0 6px}
+p{margin:0}
+.muted{color:var(--muted);font-size:.9rem}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+ul{margin:0;padding-inline-start:1.2em}
+li{margin:4px 0}
+a{color:var(--green)}
+.en{direction:ltr;text-align:left;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.7}
+.mail{font-weight:700;direction:ltr;unicode-bidi:embed}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>الدعم والتواصل</h1>
+    <p>تطبيق «القرآن الكريم – صدقة جارية»</p>
+    <p class="muted">آخر تحديث: ١٩ أكتوبر ٢٠٢٦</p>
+  </header>
+
+  <section>
+    <p>تطبيق «القرآن الكريم» تطبيق مجاني بلا إعلانات، صدقة جارية عن عبيد الشبيب رحمه الله. نسعد بملاحظاتك واقتراحاتك.</p>
+    <div>
+      <h2>راسلنا</h2>
+      <p>لأي سؤال أو ملاحظة أو مشكلة في التطبيق راسلنا على البريد:
+        <span class="mail" data-u="info" data-d="toa.sa">info [at] toa.sa</span></p>
+      <p class="muted">يُفضَّل ذكر نوع الجهاز وإصدار النظام، وإرفاق صورة للشاشة إن أمكن.</p>
+    </div>
+    <div>
+      <h2>الإبلاغ عن ملاحظة في النص</h2>
+      <p>نص المصحف في التطبيق من مجمع الملك فهد لطباعة المصحف الشريف، ولا يُعدَّل فيه حرف. فإن لاحظت شيئًا فاذكر اسم السورة ورقم الآية ورقم الصفحة، وسنراجعه مع المصدر الرسمي.</p>
+    </div>
+    <div>
+      <h2>أسئلة شائعة</h2>
+      <ul>
+        <li><strong>التلاوة لا تعمل:</strong> التلاوات تحتاج اتصالًا بالإنترنت، فتأكد من الاتصال ثم أعد المحاولة.</li>
+        <li><strong>تذكيرات «ختمتي» لا تصل:</strong> تأكد من تفعيل الإشعارات للتطبيق في إعدادات الجهاز، ومن تفعيل التذكير داخل «ختمتي».</li>
+        <li><strong>اتجاه القبلة غير دقيق:</strong> اسمح للتطبيق بالوصول إلى الموقع، وأبعد الجهاز عن المعادن والمغناطيس، وحرّكه على شكل رقم ٨ لمعايرة البوصلة.</li>
+      </ul>
+    </div>
+    <p><a href="app-privacy.html">سياسة الخصوصية</a></p>
+  </section>
+
+  <section class="en" lang="en" dir="ltr">
+    <h2>Support – Holy Quran app</h2>
+    <p>The Holy Quran app is free, has no ads, and is a charitable gift (sadaqah jariyah). For any question, feedback or problem, email us at
+      <span class="mail" data-u="info" data-d="toa.sa">info [at] toa.sa</span>.</p>
+    <p>To report a note about the Quran text, please include the surah name, ayah number and page number. <a href="app-privacy.html">Privacy Policy</a></p>
+  </section>
+</main>
+<script>
+// The address is put together here so spam bots that read the page don't find it.
+document.querySelectorAll('.mail').forEach(function (el) {
+  var a = el.dataset.u + '@' + el.dataset.d;
+  var link = document.createElement('a');
+  link.href = 'mailto:' + a;
+  link.textContent = a;
+  el.replaceChildren(link);
+});
+</script>
+</body>
+</html>
