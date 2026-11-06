@@ -348,9 +348,11 @@ function qfa_x_studio_plan_schedule(): array {
 /**
  * Build the posts of one week from the site's own content.
  *
- * Verses, hadith and adhkar are quoted from the site's data through
- * x-studio-sources.php; the supplications for the owner of this sadaqah, the
- * site links and the Friday greetings are the template's own texts, rotated.
+ * Verses, supplications, hadith and adhkar are quoted from the site's data
+ * through x-studio-sources.php: the evening supplications are Quranic duas
+ * (Saturday's asks readers to pray for the owner of this sadaqah), and the
+ * "from the site" posts quote an evening dhikr or a verse with its Muyassar
+ * tafseer next to the page link. Only the Friday greetings are template texts.
  * Each list advances week by week, so nothing repeats until its list has been
  * used up. A slot whose source cannot be read falls back to a template text of
  * the same kind rather than being left empty.
@@ -403,6 +405,34 @@ function qfa_x_studio_plan_generate(string $startDate): array {
     foreach (qfa_x_studio_plan_schedule() as $slot) {
         $perWeek[$slot[2]] = ($perWeek[$slot[2]] ?? 0) + 1;
     }
+
+    // Quranic duas: Sunday, Tuesday and Thursday from the general list,
+    // Saturday from the forgiveness-and-mercy list for the sadaqah's owner.
+    $duaList = qfa_x_sources_duas();
+    $mercyList = qfa_x_sources_mercy_duas();
+    $duaPerWeek = max(0, ($perWeek['dua'] ?? 0) - 1);
+
+    // This week's verses, so the tafseer post never quotes one of them.
+    $weekAyat = [];
+    for ($k = 0; $k < ($perWeek['ayah'] ?? 0); $k++) {
+        $entry = $ayat[qfa_x_sources_pick(count($ayat), $week, $perWeek['ayah'], $k)] ?? null;
+        if ($entry !== null) {
+            $weekAyat[$entry[0] . ':' . $entry[1]] = true;
+        }
+    }
+    $tafseerPosts = [];
+    foreach ($ayat as $entry) {
+        $text = qfa_x_sources_tafseer_post($entry);
+        if ($text !== '') {
+            $tafseerPosts[] = ['key' => $entry[0] . ':' . $entry[1], 'surah' => (int)$entry[0], 'post' => $text];
+        }
+    }
+    // This week's adhkar, so the evening adhkar post never quotes one of them.
+    $weekAdhkar = [];
+    for ($k = 0; $k < ($perWeek['dhikr'] ?? 0); $k++) {
+        $weekAdhkar[] = (string)($adhkar[qfa_x_sources_pick(count($adhkar), $week, $perWeek['dhikr'], $k)] ?? '');
+    }
+    $eveningPosts = qfa_x_sources_evening_posts();
 
     $used = [];
     $posts = [];
@@ -466,12 +496,63 @@ function qfa_x_studio_plan_generate(string $startDate): array {
                 break;
 
             case 'dua':
-                $template = $duaOfDay[$day]
-                    ?? ($duas[qfa_x_sources_pick(count($duas), $week, $n - count($duaOfDay), $k)] ?? null);
+                if ($day === 6) {
+                    $entry = $mercyList[qfa_x_sources_pick(count($mercyList), $week, 1, 0)] ?? null;
+                    $header = "🤍 ادعُ لصاحب هذه الصدقة الجارية";
+                } else {
+                    $entry = $duaList[qfa_x_sources_pick(count($duaList), $week, $duaPerWeek, $k)] ?? null;
+                    $header = "🤲 من أدعية القرآن الكريم";
+                }
+                if ($entry !== null) {
+                    $post['text'] = qfa_x_sources_ayah_post($entry, $header, false);
+                    $post['source_type'] = 'surah';
+                    $post['source_ref'] = (int)$entry[0];
+                    $post['link_placeholders'] = ["[رابط السورة]"];
+                }
+                if ($post['text'] === '') {
+                    $template = $duaOfDay[$day]
+                        ?? ($duas[qfa_x_sources_pick(count($duas), $week, $n - count($duaOfDay), $k)] ?? null);
+                }
                 break;
 
             case 'site':
-                $template = $sites[qfa_x_sources_pick(count($sites), $week, $n, $k)] ?? null;
+                // First weekly slot: an evening dhikr with the evening adhkar page.
+                // Second: a verse and its Muyassar tafseer with the tafseer pages.
+                if ($k % 2 === 0) {
+                    $count = count($eveningPosts);
+                    for ($step = 0; $step < $count; $step++) {
+                        $candidate = $eveningPosts[qfa_x_sources_pick($count, $week, 1, $step * 3)];
+                        $clash = false;
+                        foreach ($weekAdhkar as $taken) {
+                            $clash = $clash || ($taken !== '' && strpos($taken, $candidate['text']) === 0);
+                        }
+                        if (!$clash) {
+                            $post['text'] = $candidate['post'];
+                            $post['source_type'] = 'adhkar';
+                            $post['source_ref'] = 'evening';
+                            $post['link_placeholders'] = ["[رابط أذكار المساء]"];
+                            break;
+                        }
+                    }
+                } else {
+                    // A clash with this week's verses jumps a third of the list
+                    // away, so the skipped verse is not simply taken next week.
+                    $count = count($tafseerPosts);
+                    $third = max(1, intdiv($count, 3));
+                    for ($step = 0; $step < $count; $step++) {
+                        $candidate = $tafseerPosts[qfa_x_sources_pick($count, $week + intdiv($count, 2), 1, $step * $third)];
+                        if (!isset($weekAyat[$candidate['key']])) {
+                            $post['text'] = $candidate['post'];
+                            $post['source_type'] = 'surah';
+                            $post['source_ref'] = $candidate['surah'];
+                            $post['link_placeholders'] = ["[رابط التفاسير]"];
+                            break;
+                        }
+                    }
+                }
+                if ($post['text'] === '') {
+                    $template = $sites[qfa_x_sources_pick(count($sites), $week, $n, $k)] ?? null;
+                }
                 break;
 
             case 'friday':
