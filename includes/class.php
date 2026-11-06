@@ -2042,7 +2042,7 @@ class QuranForAll extends QuranForAll_API {
 				$stateClass = ( $published ? ' is-published' : ( $approved ? ' is-approved' : '' ) );
 				$postId = htmlspecialchars((string)$post['post_id'], ENT_QUOTES, 'UTF-8');
 
-				$posts .= '<article class="agent-post'.$stateClass.$post_over.'" data-post="'.$postId.'"'.$post_links_attr.'>'
+				$posts .= '<div class="agent-post'.$stateClass.$post_over.'" data-post="'.$postId.'"'.$post_links_attr.'>'
 					.'<div class="agent-post-meta"><time>'.htmlspecialchars($timeLabel, ENT_QUOTES, 'UTF-8').'</time><span>'.htmlspecialchars($typeLabel, ENT_QUOTES, 'UTF-8').'</span><b data-post-status>'.$statusLabel.'</b></div>'
 					.'<textarea aria-label="نص تغريدة '.$postId.'" readonly>'.htmlspecialchars($post_text, ENT_QUOTES, 'UTF-8').'</textarea>'
 					.'<div class="agent-post-foot"><span><b data-char-count>'.$post_length.'</b> / 280 حرفًا</span>'
@@ -2084,7 +2084,7 @@ class QuranForAll extends QuranForAll_API {
 					.'</div>'
 					.$this->x_studio_duplicate_notice($post['post_id'], $duplicates)
 					.'<p class="agent-post-message" data-post-message role="status" aria-live="polite"></p>'
-					.'</article>';
+					.'</div>';
 			}
 
 			$dayPanels .= '<section class="agent-day-panel'.($dayIndex === 0 ? ' is-active' : '').'" data-day-panel="'.$dayIndex.'"><div class="agent-day-head"><div><span>خطة يوم '.htmlspecialchars($dayName, ENT_QUOTES, 'UTF-8').'</span><h2>'.$countLabel.' مجدولة</h2></div></div><div class="agent-posts">'.$posts.'</div></section>';
@@ -2245,13 +2245,13 @@ class QuranForAll extends QuranForAll_API {
 				 * The text is printed as text. There is no editable field and no
 				 * control of any kind here: this view can only be read.
 				 */
-				$items .= '<article class="agent-archive-post'.$stateClass.'">'
+				$items .= '<div class="agent-archive-post'.$stateClass.'">'
 					.'<div class="agent-archive-post-meta">'
 					.'<time>'.htmlspecialchars($this->x_studio_time_label((string)$post['time']), ENT_QUOTES, 'UTF-8').'</time>'
 					.'<span>'.htmlspecialchars($typeLabel, ENT_QUOTES, 'UTF-8').'</span>'
 					.'<b>'.$stateLabel.'</b></div>'
 					.'<p class="agent-archive-text">'.nl2br(htmlspecialchars((string)$post['text'], ENT_QUOTES, 'UTF-8'), false).'</p>'
-					.'</article>';
+					.'</div>';
 			}
 
 			$days .= '<section class="agent-archive-day"><h4>'.htmlspecialchars($dayName, ENT_QUOTES, 'UTF-8').'</h4>'.$items.'</section>';
