@@ -413,3 +413,26 @@ html[data-theme="dark"] .sadaqah-agent-page .agent-duplicate-link {
   background: #2f2819;
 }
 .sadaqah-agent-page .agent-refresh{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 16px}.sadaqah-agent-page .agent-refresh .agent-seed{margin-top:0}.sadaqah-agent-page .agent-refresh .agent-empty-note{margin:0}
+
+/* v1.16 - "Mushaf" scheme: its hero colours (--q-hero-a/b) are light paper,
+   so the white hero text disappeared. Use the scheme's own hero tokens,
+   which are light paper by day and charcoal by night. */
+html body.color-mushaf .sadaqah-agent-page .agent-hero {
+  border: 1px solid var(--m-border, #E6DDCB);
+  background: var(--m-hero, #F7F3EA);
+  box-shadow: var(--m-shadow, 0 12px 32px -12px rgba(43,38,32,.12));
+}
+html body.color-mushaf .sadaqah-agent-page .agent-hero h1 {
+  color: var(--m-text, #2B2620);
+}
+html body.color-mushaf .sadaqah-agent-page .agent-hero p {
+  color: var(--m-hero-muted, #6B6255);
+}
+html body.color-mushaf .sadaqah-agent-page .agent-eyebrow {
+  color: var(--m-accent, #A9823A);
+}
+html body.color-mushaf .sadaqah-agent-page .agent-hero-icon {
+  border-color: var(--m-border, #E6DDCB);
+  background: var(--m-surface, #FFFDF8);
+  color: var(--m-accent, #A9823A);
+}
