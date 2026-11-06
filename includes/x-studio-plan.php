@@ -315,3 +315,206 @@ function qfa_x_studio_plan_view_days(): array {
 
     return $days;
 }
+
+/**
+ * Arabic labels for every post type the studio can show, including the types
+ * only generated weeks use.
+ */
+function qfa_x_studio_plan_type_labels(): array {
+    $labels = [];
+    foreach (qfa_x_studio_plan_posts() as $post) {
+        $labels[$post['type']] = $post['type_label'];
+    }
+    $labels['hadith'] = "حديث";
+    return $labels;
+}
+
+/**
+ * The weekly schedule of generated weeks: [day, time, kind]. Day 0 is Sunday.
+ * Three posts a day, the most the stored plan allows.
+ */
+function qfa_x_studio_plan_schedule(): array {
+    return [
+        [0, "08:00", 'ayah'],   [0, "13:00", 'hadith'], [0, "20:30", 'dua'],
+        [1, "08:00", 'ayah'],   [1, "13:00", 'dhikr'],  [1, "17:00", 'site'],
+        [2, "08:00", 'ayah'],   [2, "13:00", 'hadith'], [2, "20:30", 'dua'],
+        [3, "08:00", 'ayah'],   [3, "13:00", 'dhikr'],  [3, "17:00", 'site'],
+        [4, "08:00", 'ayah'],   [4, "13:00", 'hadith'], [4, "21:00", 'dua'],
+        [5, "08:00", 'friday'], [5, "10:00", 'kahf'],   [5, "16:30", 'friday_hour'],
+        [6, "08:00", 'ayah'],   [6, "13:00", 'hadith'], [6, "20:30", 'dua'],
+    ];
+}
+
+/**
+ * Build the posts of one week from the site's own content.
+ *
+ * Verses, hadith and adhkar are quoted from the site's data through
+ * x-studio-sources.php; the supplications for the owner of this sadaqah, the
+ * site links and the Friday greetings are the template's own texts, rotated.
+ * Each list advances week by week, so nothing repeats until its list has been
+ * used up. A slot whose source cannot be read falls back to a template text of
+ * the same kind rather than being left empty.
+ *
+ * Returns entries in the template's shape (without the display labels).
+ */
+function qfa_x_studio_plan_generate(string $startDate): array {
+    require_once __DIR__ . '/x-studio-sources.php';
+
+    $week = qfa_x_sources_week_index($startDate);
+
+    $byType = [];
+    foreach (qfa_x_studio_plan_posts() as $template) {
+        $byType[$template['type']][] = $template;
+    }
+    $fridayHour = null;
+    foreach ($byType['friday'] ?? [] as $template) {
+        if ((int)$template['day'] === 5 && $template['time'] !== "08:00") {
+            $fridayHour = $template;
+        }
+    }
+
+    $ayat = qfa_x_sources_ayat();
+    $kahf = qfa_x_sources_kahf();
+    $hadith = qfa_x_sources_hadith();
+    $adhkar = qfa_x_sources_adhkar();
+
+    /*
+     * Template texts reused in rotation. Thursday's and Saturday's
+     * supplications speak of the coming Friday and the closing week, so they
+     * stay on their own day; the others rotate between the remaining slots.
+     */
+    $duas = [];
+    $duaOfDay = [];
+    foreach ($byType['dua'] ?? [] as $template) {
+        if (in_array((int)$template['day'], [4, 6], true)) {
+            $duaOfDay[(int)$template['day']] = $template;
+        } else {
+            $duas[] = $template;
+        }
+    }
+    $sites = $byType['site'] ?? [];
+    $fallback = [
+        'ayah' => $byType['ayah'] ?? [],
+        'dhikr' => $byType['dhikr'] ?? [],
+        'kahf' => $byType['kahf'] ?? [],
+    ];
+
+    $perWeek = [];
+    foreach (qfa_x_studio_plan_schedule() as $slot) {
+        $perWeek[$slot[2]] = ($perWeek[$slot[2]] ?? 0) + 1;
+    }
+
+    $used = [];
+    $posts = [];
+    foreach (qfa_x_studio_plan_schedule() as [$day, $time, $kind]) {
+        $k = $used[$kind] ?? 0;
+        $used[$kind] = $k + 1;
+        $n = $perWeek[$kind];
+
+        $post = [
+            'day' => $day,
+            'time' => $time,
+            'type' => $kind,
+            'text' => '',
+            'source_type' => 'none',
+            'source_ref' => null,
+            'link_placeholders' => [],
+        ];
+        $template = null;
+
+        switch ($kind) {
+            case 'ayah':
+                $entry = $ayat[qfa_x_sources_pick(count($ayat), $week, $n, $k)] ?? null;
+                if ($entry !== null) {
+                    $post['text'] = qfa_x_sources_ayah_post($entry);
+                    $post['source_type'] = 'surah';
+                    $post['source_ref'] = (int)$entry[0];
+                    $post['link_placeholders'] = ["[رابط السورة]"];
+                }
+                if ($post['text'] === '') {
+                    $template = $fallback['ayah'][qfa_x_sources_pick(count($fallback['ayah']), $week, $n, $k)] ?? null;
+                }
+                break;
+
+            case 'kahf':
+                $entry = $kahf[qfa_x_sources_pick(count($kahf), $week, $n, $k)] ?? null;
+                if ($entry !== null) {
+                    $post['text'] = qfa_x_sources_ayah_post($entry, "نورٌ ما بين الجمعتين 🌿");
+                    $post['source_type'] = 'surah';
+                    $post['source_ref'] = 18;
+                    $post['link_placeholders'] = ["[رابط السورة]"];
+                }
+                if ($post['text'] === '') {
+                    $template = $fallback['kahf'][0] ?? null;
+                }
+                break;
+
+            case 'hadith':
+                $ref = $hadith[qfa_x_sources_pick(count($hadith), $week, $n, $k)] ?? null;
+                $post['text'] = ($ref === null ? '' : qfa_x_sources_hadith_post($ref));
+                if ($post['text'] === '') {
+                    $post['type'] = 'dhikr';
+                    $template = $fallback['dhikr'][qfa_x_sources_pick(count($fallback['dhikr']), $week, $n, $k)] ?? null;
+                }
+                break;
+
+            case 'dhikr':
+                $post['text'] = $adhkar[qfa_x_sources_pick(count($adhkar), $week, $n, $k)] ?? '';
+                if ($post['text'] === '') {
+                    $template = $fallback['dhikr'][qfa_x_sources_pick(count($fallback['dhikr']), $week, $n, $k)] ?? null;
+                }
+                break;
+
+            case 'dua':
+                $template = $duaOfDay[$day]
+                    ?? ($duas[qfa_x_sources_pick(count($duas), $week, $n - count($duaOfDay), $k)] ?? null);
+                break;
+
+            case 'site':
+                $template = $sites[qfa_x_sources_pick(count($sites), $week, $n, $k)] ?? null;
+                break;
+
+            case 'friday':
+                // Odd weeks quote the verse on sending blessings upon the Prophet ﷺ.
+                if ($week % 2 !== 0) {
+                    $post['text'] = qfa_x_sources_ayah_post([33, 56, 56, 0, 0], "جمعة مباركة 🤍");
+                    $post['source_type'] = 'surah';
+                    $post['source_ref'] = 33;
+                    $post['link_placeholders'] = ["[رابط السورة]"];
+                }
+                if ($post['text'] !== '') {
+                    break;
+                }
+                foreach ($byType['friday'] ?? [] as $candidate) {
+                    if ((int)$candidate['day'] === 5 && $candidate['time'] === "08:00") {
+                        $template = $candidate;
+                    }
+                }
+                break;
+
+            case 'friday_hour':
+                // Alternate between the template's reminder and the Muwatta hadith it paraphrases.
+                $post['type'] = 'friday';
+                if ($week % 2 !== 0) {
+                    $post['text'] = qfa_x_sources_hadith_post(qfa_x_sources_friday_hadith());
+                }
+                if ($post['text'] === '') {
+                    $template = $fridayHour;
+                }
+                break;
+        }
+
+        if ($post['text'] === '' && $template !== null) {
+            $post['text'] = (string)$template['text'];
+            $post['source_type'] = (string)$template['source_type'];
+            $post['source_ref'] = $template['source_ref'];
+            $post['link_placeholders'] = array_values($template['link_placeholders']);
+        }
+        if ($post['text'] === '') {
+            continue;
+        }
+        $posts[] = $post;
+    }
+
+    return $posts;
+}
