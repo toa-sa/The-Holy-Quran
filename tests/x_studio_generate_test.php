@@ -73,5 +73,27 @@ $a = qfa_x_store_build_week($bounds)['posts'];
 $b = qfa_x_store_build_week($bounds)['posts'];
 check('generation is deterministic', array_column($a, 'text') === array_column($b, 'text'));
 
+// Refreshing the current week keeps touched posts and replaces the rest.
+$tmp = sys_get_temp_dir() . '/qfa-x-refresh-' . getmypid() . '.php';
+@unlink($tmp);
+$nowRiyadh = new DateTimeImmutable('now', $tz);
+$seeded = qfa_x_store_seed_week($tmp, $nowRiyadh);
+check('seed for refresh test', $seeded['status'] === QFA_X_OK);
+$read = qfa_x_store_read($tmp);
+$plan = $read['data'];
+$plan['posts'][0]['text'] = 'نص قديم معتمد';
+$plan['posts'][0]['approved'] = true;
+$plan['posts'][0]['approved_at'] = qfa_x_now();
+$plan['posts'][1]['text'] = 'نص قديم غير معتمد';
+qfa_x_store_write($plan, (int)$plan['week']['revision'], $tmp);
+$refresh = qfa_x_store_refresh_week($tmp, $nowRiyadh);
+$after = qfa_x_store_read($tmp)['data']['posts'];
+check('refresh succeeds', $refresh['status'] === QFA_X_OK);
+check('approved post kept', $after[0]['text'] === 'نص قديم معتمد' && $after[0]['approved'] === true);
+check('untouched post replaced', $after[1]['text'] !== 'نص قديم غير معتمد');
+check('still 21 posts', count($after) === 21);
+@unlink($tmp);
+@unlink($tmp . '.bak');
+
 echo "$checks checks, $failures failures\n";
 exit($failures === 0 ? 0 : 1);
