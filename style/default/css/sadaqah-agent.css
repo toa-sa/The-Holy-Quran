@@ -412,3 +412,4 @@ html[data-theme="dark"] .sadaqah-agent-page .agent-unapprove:hover:not(:disabled
 html[data-theme="dark"] .sadaqah-agent-page .agent-duplicate-link {
   background: #2f2819;
 }
+.sadaqah-agent-page .agent-refresh{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 16px}.sadaqah-agent-page .agent-refresh .agent-seed{margin-top:0}.sadaqah-agent-page .agent-refresh .agent-empty-note{margin:0}

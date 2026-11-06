@@ -689,6 +689,51 @@
     });
   }
 
+  var refreshButton = root.querySelector('[data-refresh-week]');
+  if (refreshButton) {
+    var refreshMessage = root.querySelector('[data-refresh-message]');
+    var refreshSay = function (text) {
+      if (refreshMessage) refreshMessage.textContent = text;
+    };
+
+    refreshButton.addEventListener('click', function () {
+      if (refreshButton.disabled) return;
+      var token = root.getAttribute('data-csrf') || '';
+      if (!token) {
+        refreshSay('تعذر التحقق من الصفحة. أعد تحميلها ثم حاول مرة أخرى.');
+        return;
+      }
+      if (!window.confirm('ستُستبدل التغريدات غير المعتمدة بتغريدات جديدة من محتوى الموقع. المعتمدة والمنشورة تبقى. متابعة؟')) return;
+
+      refreshButton.disabled = true;
+      refreshSay('جارٍ توليد التغريدات…');
+
+      var body = new URLSearchParams();
+      body.append('action', 'refresh_week');
+      body.append('csrf', token);
+
+      fetch(SEED_URL, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: body.toString()
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; });
+      }).then(function (data) {
+        var code = (data && data.code) || '';
+        if (code === 'WEEK_REFRESHED') {
+          window.location.reload();
+          return;
+        }
+        refreshSay((data && data.message) || 'تعذر توليد التغريدات.');
+        refreshButton.disabled = false;
+      }).catch(function () {
+        refreshSay('تعذر الاتصال بالخادم. تحقق من الاتصال ثم حاول مرة أخرى.');
+        refreshButton.disabled = false;
+      });
+    });
+  }
+
   var seedButton = root.querySelector('[data-seed-week]');
   if (seedButton) {
     var seedMessage = root.querySelector('[data-seed-message]');

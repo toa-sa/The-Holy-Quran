@@ -1851,8 +1851,8 @@ class QuranForAll extends QuranForAll_API {
 		$this->title = 'استوديو النشر على X';
 		$this->description = 'إعداد ومراجعة واعتماد محتوى القرآن الكريم للنشر على منصة X';
 		$this->url = $this->url(array('action' => 'sadaqah_agent'));
-		$this->headercode .= '<link rel="stylesheet" type="text/css" href="'.$this->get_theme_folder_url().'/css/sadaqah-agent.css?v=1.14">';
-		$this->footercode .= '<script src="'.$this->get_theme_folder_url().'/js/sadaqah-agent.js?v=1.11" defer></script>';
+		$this->headercode .= '<link rel="stylesheet" type="text/css" href="'.$this->get_theme_folder_url().'/css/sadaqah-agent.css?v=1.15">';
+		$this->footercode .= '<script src="'.$this->get_theme_folder_url().'/js/sadaqah-agent.js?v=1.12" defer></script>';
 
 		require_once __DIR__ . '/x-studio-store.php';
 		require_once __DIR__ . '/x-studio-plan.php';
@@ -2079,6 +2079,12 @@ class QuranForAll extends QuranForAll_API {
 		$stale = ( (string)$week['week_id'] !== $currentWeek['week_id'] );
 
 		$rollover = '';
+		if( !$stale ){
+			$rollover = '<div class="agent-refresh">'
+				.'<button type="button" class="agent-seed" data-refresh-week><i class="fas fa-rotate" aria-hidden="true"></i> توليد تغريدات جديدة من محتوى الموقع</button>'
+				.'<p class="agent-empty-note" data-refresh-message role="status" aria-live="polite">تُستبدل التغريدات غير المعتمدة فقط، والمعتمدة والمنشورة تبقى كما هي.</p>'
+				.'</div>';
+		}
 		if( $stale ){
 			$rollover = '<div class="agent-stale" role="status">'
 				.'<span class="agent-stale-icon" aria-hidden="true"><i class="fas fa-clock-rotate-left"></i></span>'

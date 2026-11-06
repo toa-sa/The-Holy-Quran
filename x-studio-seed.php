@@ -114,8 +114,33 @@ foreach ($allowed as $field) {
     }
 }
 
-if ((string)$_POST['action'] !== 'seed_week') {
+if (!in_array((string)$_POST['action'], ['seed_week', 'refresh_week'], true)) {
     qfa_x_seed_reply(422, false, 'INVALID_ACTION', 'العملية المطلوبة غير معروفة.');
+}
+
+// --- refresh the current week's untouched posts ------------------------------
+
+if ((string)$_POST['action'] === 'refresh_week') {
+    $refresh = qfa_x_store_refresh_week();
+    switch ($refresh['status']) {
+        case QFA_X_OK:
+            qfa_x_seed_reply(200, true, 'WEEK_REFRESHED', '', [
+                'replaced' => (int)($refresh['replaced'] ?? 0),
+                'kept' => (int)($refresh['kept'] ?? 0),
+            ]);
+        case QFA_X_NOT_FOUND:
+            qfa_x_seed_reply(404, false, 'NO_PLAN', 'لا توجد خطة لهذا الأسبوع بعد.');
+        case QFA_X_NOT_CURRENT_WEEK:
+            qfa_x_seed_reply(409, false, 'NOT_CURRENT_WEEK', 'هذه خطة أسبوع سابق. أرشفها وأنشئ الأسبوع الجديد.');
+        case QFA_X_CONFLICT:
+            qfa_x_seed_reply(409, false, 'CONFLICT', 'تم تعديل الخطة من مكان آخر. أعد تحميل الصفحة.');
+        case QFA_X_UNREADABLE:
+            qfa_x_seed_reply(500, false, 'STORE_UNREADABLE', 'تعذر قراءة الخطة.');
+        case QFA_X_WRITE_FAILED:
+            qfa_x_seed_reply(500, false, 'WRITE_FAILED', 'تعذر حفظ الخطة. حاول مرة أخرى.');
+        default:
+            qfa_x_seed_reply(500, false, 'STORE_CORRUPT', 'ملف الخطة تالف. لا يمكن التحديث حتى تتم مراجعته.');
+    }
 }
 
 // --- create, if there is nothing there -------------------------------------

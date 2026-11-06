@@ -930,6 +930,85 @@ function qfa_x_store_seed_week(?string $file = null, ?DateTimeImmutable $now = n
     return $result;
 }
 
+/** The live plan belongs to an earlier week; refreshing it is refused. */
+const QFA_X_NOT_CURRENT_WEEK = 'NOT_CURRENT_WEEK';
+
+/**
+ * Replace the untouched posts of the current week with freshly generated ones.
+ *
+ * A post the administrator has already acted on (approved, published, or sent
+ * to the X composer) is kept exactly as it is; every other post is swapped for
+ * the post generated for the same position, so post ids stay stable. Only the
+ * current week can be refreshed: an older plan is moved on with the rollover,
+ * which archives it first.
+ *
+ * The write is a compare-and-swap on the revision that was read, so a change
+ * made in another tab in the meantime makes this refuse rather than overwrite.
+ *
+ * @return array{status:string, revision:?int, errors:string[], replaced?:int, kept?:int}
+ */
+function qfa_x_store_refresh_week(?string $file = null, ?DateTimeImmutable $now = null): array {
+    $read = qfa_x_store_read($file);
+    if ($read['status'] !== QFA_X_OK) {
+        return ['status' => $read['status'], 'revision' => null, 'errors' => $read['errors'] ?? []];
+    }
+
+    $plan = $read['data'];
+    $bounds = qfa_x_store_week_bounds($now);
+    if ((string)$plan['week']['week_id'] !== $bounds['week_id']) {
+        return ['status' => QFA_X_NOT_CURRENT_WEEK, 'revision' => (int)$plan['week']['revision'], 'errors' => []];
+    }
+
+    $fresh = qfa_x_store_build_week([
+        'week_id' => (string)$plan['week']['week_id'],
+        'start_date' => (string)$plan['week']['start_date'],
+        'end_date' => (string)$plan['week']['end_date'],
+    ]);
+
+    $touched = [];
+    foreach ($plan['posts'] as $post) {
+        if (($post['approved'] ?? false) === true
+            || ($post['published'] ?? false) === true
+            || ($post['intent_opened_at'] ?? null) !== null) {
+            $touched[(string)$post['post_id']] = $post;
+        }
+    }
+
+    // A kept post holds its day and time; a fresh post that would land on the
+    // same slot is left out rather than scheduled twice.
+    $takenSlots = [];
+    foreach ($touched as $post) {
+        $takenSlots[$post['day'] . ' ' . $post['time']] = true;
+    }
+
+    $posts = [];
+    $replaced = 0;
+    foreach ($fresh['posts'] as $post) {
+        $id = (string)$post['post_id'];
+        if (isset($touched[$id])) {
+            $posts[] = $touched[$id];
+            unset($touched[$id]);
+            continue;
+        }
+        if (isset($takenSlots[$post['day'] . ' ' . $post['time']])) {
+            continue;
+        }
+        $posts[] = $post;
+        $replaced++;
+    }
+    // Touched posts whose position no longer exists in the schedule are kept too.
+    foreach ($touched as $post) {
+        $posts[] = $post;
+    }
+    $kept = count($posts) - $replaced;
+
+    $plan['posts'] = array_slice($posts, 0, QFA_X_MAX_POSTS);
+    $result = qfa_x_store_write($plan, (int)$read['data']['week']['revision'], $file);
+    $result['replaced'] = $replaced;
+    $result['kept'] = $kept;
+    return $result;
+}
+
 // ---------------------------------------------------------------------------
 // Archiving a finished week
 // ---------------------------------------------------------------------------
