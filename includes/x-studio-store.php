@@ -53,7 +53,7 @@ const QFA_X_MAX_PLACEHOLDER_LEN = 64;
 const QFA_X_MAX_POST_ID_LEN = 32;
 
 const QFA_X_STATUSES = ['draft', 'active', 'closed'];
-const QFA_X_TYPES = ['ayah', 'dhikr', 'dua', 'tafseer', 'recitation', 'adhkar', 'site', 'friday', 'kahf'];
+const QFA_X_TYPES = ['ayah', 'dhikr', 'dua', 'tafseer', 'recitation', 'adhkar', 'site', 'friday', 'kahf', 'hadith'];
 const QFA_X_SOURCE_TYPES = ['surah', 'page', 'adhkar', 'none'];
 const QFA_X_ADHKAR_REFS = ['morning', 'evening'];
 
@@ -833,7 +833,8 @@ function qfa_x_store_week_bounds(?DateTimeImmutable $now = null): array {
 }
 
 /**
- * Turn the shared weekly template into a plan for a specific week.
+ * Build the plan for a specific week from the site's content (see
+ * qfa_x_studio_plan_generate), falling back to the fixed template.
  *
  * Every post starts untouched: nothing approved, nothing published, no intent
  * recorded and no content hash, because none of those things have happened yet.
@@ -845,7 +846,17 @@ function qfa_x_store_build_week(array $bounds): array {
     $posts = [];
     $sequence = 0;
 
-    foreach (qfa_x_studio_plan_posts() as $template) {
+    /*
+     * The week is generated from the site's own content (verses, hadith,
+     * adhkar), advancing through each list week by week. Only if generation
+     * yields nothing usable does the fixed template stand in.
+     */
+    $source = qfa_x_studio_plan_generate($bounds['start_date']);
+    if ($source === []) {
+        $source = qfa_x_studio_plan_posts();
+    }
+
+    foreach ($source as $template) {
         $sequence++;
 
         $posts[] = [

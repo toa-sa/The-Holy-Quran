@@ -36,6 +36,7 @@ jobs:
           php tests/config_writer_test.php
           php tests/social_share_default_test.php
           php tests/totp_test.php
+          php tests/x_studio_generate_test.php
 
       - name: Quran and source data unchanged
         run: |
