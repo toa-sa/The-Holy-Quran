@@ -208,6 +208,73 @@ function qfa_x_sources_friday_hadith(): array {
 }
 
 /**
+ * Supplications from the Quran for the Sunday, Tuesday and Thursday evening
+ * posts. Same shape as the daily verses: [surah, first ayah, last ayah,
+ * first word, last word], the word range a slice of the verse as the site
+ * stores it, so the supplication is quoted exactly as it stands.
+ */
+function qfa_x_sources_duas(): array {
+    return [
+        [2, 127, 127, 8, 15],
+        [2, 128, 128, 0, 0],
+        [2, 201, 201, 4, 14],
+        [3, 8, 8, 0, 0],
+        [3, 9, 9, 0, 0],
+        [3, 16, 16, 3, 11],
+        [3, 38, 38, 7, 17],
+        [3, 53, 53, 0, 0],
+        [3, 191, 191, 13, 21],
+        [3, 194, 194, 0, 0],
+        [7, 89, 89, 38, 46],
+        [7, 126, 126, 12, 17],
+        [10, 85, 85, 5, 10],
+        [14, 40, 40, 0, 0],
+        [17, 80, 80, 2, 14],
+        [18, 10, 10, 7, 16],
+        [20, 25, 25, 2, 5],
+        [20, 114, 114, 17, 19],
+        [21, 83, 83, 6, 11],
+        [21, 87, 87, 15, 23],
+        [21, 89, 89, 5, 11],
+        [23, 29, 29, 2, 8],
+        [23, 97, 97, 2, 7],
+        [25, 65, 65, 3, 12],
+        [25, 74, 74, 3, 13],
+        [26, 83, 83, 0, 0],
+        [27, 19, 19, 6, 24],
+        [28, 24, 24, 8, 15],
+        [37, 100, 100, 0, 0],
+        [44, 12, 12, 0, 0],
+        [60, 4, 4, 47, 53],
+        [60, 5, 5, 0, 0],
+        [66, 8, 8, 36, 47],
+        [66, 11, 11, 10, 16],
+    ];
+}
+
+/**
+ * Supplications from the Quran for forgiveness and mercy, for the Saturday
+ * post that asks readers to pray for the owner of this sadaqah. Same shape.
+ */
+function qfa_x_sources_mercy_duas(): array {
+    return [
+        [17, 24, 24, 8, 12],
+        [14, 41, 41, 0, 0],
+        [71, 28, 28, 1, 10],
+        [59, 10, 10, 6, 23],
+        [3, 193, 193, 12, 21],
+        [7, 151, 151, 2, 12],
+        [23, 118, 118, 2, 7],
+        [23, 109, 109, 7, 14],
+        [7, 23, 23, 2, 12],
+        [28, 16, 16, 2, 7],
+        [40, 7, 7, 14, 27],
+        [40, 8, 8, 0, 0],
+        [2, 286, 286, 44, 48],
+    ];
+}
+
+/**
  * Arabic surah names exactly as the site's Quran API spells them, because the
  * studio matches 'سورة <name>' against that list to resolve the surah link.
  */
@@ -484,9 +551,11 @@ function qfa_x_sources_adhkar(): array {
 
 /**
  * A verse post: the verse, its reference, the Muyassar line when the whole
- * post still fits in one tweet, and the surah link placeholder.
+ * post still fits in one tweet (unless $withTafseer is false, as for the
+ * supplications, whose tafseer describes the context rather than the prayer),
+ * and the surah link placeholder.
  */
-function qfa_x_sources_ayah_post(array $entry, string $header = ''): string {
+function qfa_x_sources_ayah_post(array $entry, string $header = '', bool $withTafseer = true): string {
     $quote = qfa_x_sources_ayah_text($entry);
     if ($quote === '') {
         return '';
@@ -507,7 +576,7 @@ function qfa_x_sources_ayah_post(array $entry, string $header = ''): string {
     // The placeholder becomes a link X shortens to 23 characters, so budget for that.
     $linkGrowth = 23 - qfa_x_sources_length('[رابط السورة]');
 
-    if ($wordFrom === 0 && $to === $from) {
+    if ($withTafseer && $wordFrom === 0 && $to === $from) {
         $tafseer = qfa_x_sources_muyassar($surah, $from);
         if ($tafseer !== '') {
             $withTafseer = $head . $body . "\n\nالتفسير الميسر: " . $tafseer . $foot;
@@ -518,6 +587,47 @@ function qfa_x_sources_ayah_post(array $entry, string $header = ''): string {
     }
 
     return $head . $body . $foot;
+}
+
+/**
+ * A "from the site" post for the tafseer pages: one whole verse with its
+ * Muyassar tafseer and the tafseer link, or '' when it does not fit one tweet.
+ */
+function qfa_x_sources_tafseer_post(array $entry): string {
+    [$surah, $from, $to, $wordFrom] = array_map('intval', $entry);
+    if ($wordFrom !== 0 || $to !== $from) {
+        return '';
+    }
+    $quote = qfa_x_sources_ayah($surah, $from);
+    $tafseer = qfa_x_sources_muyassar($surah, $from);
+    $name = qfa_x_sources_surah_names()[$surah] ?? '';
+    if ($quote === '' || $tafseer === '' || $name === '') {
+        return '';
+    }
+    $post = '﴿' . $quote . '﴾ [' . $name . ': ' . qfa_x_sources_digits($from) . ']'
+        . "\n\nالتفسير الميسر: " . $tafseer
+        . "\n\n📚 التفاسير في الموقع: [رابط التفاسير]";
+    $linkGrowth = 23 - qfa_x_sources_length('[رابط التفاسير]');
+    return (qfa_x_sources_length($post) + $linkGrowth <= 280 ? $post : '');
+}
+
+/**
+ * "From the site" posts for the evening adhkar page: one evening dhikr as the
+ * site lists it, its source, and the page link. Only those that fit a tweet.
+ */
+function qfa_x_sources_evening_posts(): array {
+    require_once __DIR__ . '/adhkar-data.php';
+
+    $linkGrowth = 23 - qfa_x_sources_length('[رابط أذكار المساء]');
+    $out = [];
+    foreach (qfa_adhkar_evening_items() as $item) {
+        $text = trim(html_entity_decode(strip_tags(str_ireplace(['<br>', '<br/>', '<br />'], "\n", (string)$item[1])), ENT_QUOTES, 'UTF-8'));
+        $post = $text . "\n\n📚 " . trim((string)$item[3]) . "\n\n🌙 أذكار المساء مع العداد: [رابط أذكار المساء]";
+        if (qfa_x_sources_length($post) + $linkGrowth <= 280) {
+            $out[] = ['text' => $text, 'post' => $post];
+        }
+    }
+    return $out;
 }
 
 /** A hadith post, attributed to the Muwatta. */

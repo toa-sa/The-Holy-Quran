@@ -32,6 +32,10 @@ foreach (array_merge(qfa_x_sources_ayat(), qfa_x_sources_kahf()) as $entry) {
 foreach (qfa_x_sources_hadith() as $ref) {
     check('hadith ' . implode('/', $ref) . ' resolves', qfa_x_sources_hadith_text($ref) !== '');
 }
+foreach (array_merge(qfa_x_sources_duas(), qfa_x_sources_mercy_duas()) as $entry) {
+    check('dua ' . implode(':', $entry) . ' resolves', qfa_x_sources_ayah_text($entry) !== '');
+}
+check('evening adhkar posts available', count(qfa_x_sources_evening_posts()) >= 5);
 check('friday hadith resolves', qfa_x_sources_hadith_text(qfa_x_sources_friday_hadith()) !== '');
 check('adhkar available', count(qfa_x_sources_adhkar()) >= 5);
 check('114 surah names', count(qfa_x_sources_surah_names()) === 114);
@@ -65,6 +69,37 @@ for ($i = 0; $i < 53; $i++) {
         check("$week shares no verse or hadith with the week before", array_intersect($texts, $previous) === []);
     }
     $previous = $texts;
+}
+
+// Supplications and "from the site" posts come from site content, not the
+// fixed template, and do not repeat until their list has gone round.
+$templateTexts = array_column(qfa_x_studio_plan_posts(), 'text');
+$seen = ['dua' => [], 'site' => []];
+// The site posts draw on short lists (evening adhkar and tafseer that fit a
+// tweet) and step around this week's other posts, so their floor is lower.
+$cycle = [
+    'dua' => intdiv(count(qfa_x_sources_duas()), 3),
+    'site' => 3,
+];
+for ($i = 0; $i < 53; $i++) {
+    $start = (new DateTimeImmutable('2026-11-08', $tz))->modify('+' . $i . ' weeks')->format('Y-m-d');
+    $posts = qfa_x_studio_plan_generate($start);
+    $week = 'week of ' . $start;
+    check("$week has no repeated text", count(array_unique(array_column($posts, 'text'))) === count($posts));
+    foreach ($posts as $post) {
+        if (!in_array($post['type'], ['dua', 'site'], true)) {
+            continue;
+        }
+        check("$week {$post['type']} day {$post['day']} quotes the site", !in_array($post['text'], $templateTexts, true));
+        $last = $seen[$post['type']][$post['text']] ?? null;
+        check("$week {$post['type']} day {$post['day']} not repeated within its cycle", $last === null || $i - $last >= $cycle[$post['type']]);
+        $seen[$post['type']][$post['text']] = $i;
+    }
+    foreach ($posts as $post) {
+        if ($post['type'] === 'dua' && $post['day'] === 6) {
+            check("$week Saturday dua is for the sadaqah's owner", strpos($post['text'], 'صاحب هذه الصدقة') !== false);
+        }
+    }
 }
 
 // Same week, same posts.
